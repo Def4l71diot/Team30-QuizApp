@@ -1,13 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import Type
-
-from peewee import Model
 
 
 class BaseDatabase(ABC):
 
     @abstractmethod
-    def __init__(self, dao_class: Type[Model]):
+    def __init__(self, dao_class):
         self.dao_class = dao_class
 
     def get_all(self):
