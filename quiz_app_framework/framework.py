@@ -5,4 +5,4 @@ from quiz_app_framework.models.daos.base_dao import DATABASE_PROXY
 def setup(database):
     DATABASE_PROXY.initialize(database)
     with database:
-        database.create_tables([Topic, Answer, Question])
+        database.create_tables([Topic, Question, Answer])
