@@ -1,13 +1,5 @@
-from peewee import Model
+from .models.base_model import DATABASE_PROXY
 
 
-class Framework:
-    BASE_MODEL = None
-
-    @staticmethod
-    def setup(database_connection):
-        class BaseModel(Model):
-            class Meta:
-                database = database_connection
-
-        Framework.BASE_MODEL = BaseModel
+def setup(database):
+    DATABASE_PROXY.initialize(database)
