@@ -1,9 +1,6 @@
-from quiz_app_framework import BaseModel, Question
+class Answer:
 
-from peewee import *
-
-
-class Answer(BaseModel):
-    description = TextField()
-    pathToImage = CharField(null=True, default=None)
-    question = ForeignKeyField(Question, backref='answers')
+    def __init__(self, description, path_to_image=None):
+        self.id = None
+        self.description = description
+        self.path_to_image = path_to_image

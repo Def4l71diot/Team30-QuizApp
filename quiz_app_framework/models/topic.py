@@ -1,7 +1,6 @@
-from quiz_app_framework import BaseModel
+class Topic:
 
-from peewee import *
-
-
-class Topic(BaseModel):
-    name = CharField(unique=True)
+    def __init__(self, name):
+        self.id = None
+        self.questions = None
+        self.name = name
