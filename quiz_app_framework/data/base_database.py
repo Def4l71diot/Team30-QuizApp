@@ -27,3 +27,6 @@ class BaseDatabase(ABC):
 
     def delete(self, record):
         return record.delete_instance()
+
+    def get_number_of_records(self):
+        return self.dao_class.select().count()

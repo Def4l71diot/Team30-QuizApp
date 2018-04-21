@@ -1,6 +1,7 @@
 import quiz_app_framework as qaf
 
 from peewee import SqliteDatabase
+import getpass
 
 database = SqliteDatabase("quiz_app.db")
 
@@ -8,20 +9,43 @@ qaf.setup(database)
 
 question_manager = qaf.QuestionManager()
 
+config_manager = qaf.ConfigManager()
+
 
 def run():
+    try:
+        if config_manager.is_first_launch:
+            password = getpass.getpass("Please enter a password for the admin account: ")
+            is_admin_created = config_manager.register_admin(password)
+            if not is_admin_created:
+                raise Exception("And error occurred while creating admin account!")
+
+        password = getpass.getpass("Log in: ")
+
+        if not config_manager.login_admin(password):
+            raise Exception("Wrong password!")
+
+    except Exception as e:
+        print(e)
+        return
+
     while True:
         try:
             command = input("Please enter a command: ")
             if command == "questions":
+                login_guard()
                 list_all_questions()
             elif command == "topics":
+                login_guard()
                 list_all_topics()
             elif command == "createTopic":
+                login_guard()
                 create_topic()
             elif command == "createQuestion":
+                login_guard()
                 create_question()
             elif command == "delete":
+                login_guard()
                 delete_question()
             elif command == "help":
                 show_help()
@@ -96,6 +120,11 @@ def show_help():
     print("createQuestion - create a question")
     print("delete - delete a question")
     print("exit - exit the program")
+
+
+def login_guard():
+    if not config_manager.is_admin_logged_in:
+        raise Exception("You must be logged in to perform this action!")
 
 
 def print_questions(questions):
