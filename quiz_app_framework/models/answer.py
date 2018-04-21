@@ -1,7 +1,12 @@
-class Answer:
+from .base_dao import BaseDAO
 
-    def __init__(self, description, is_correct=False, path_to_image=None):
-        self.id = None
-        self.description = description
-        self.is_correct = is_correct
-        self.path_to_image = path_to_image
+from quiz_app_framework.models import Question
+
+from peewee import *
+
+
+class Answer(BaseDAO):
+    description = TextField()
+    path_to_image = CharField(null=True, default=None)
+    is_correct = BooleanField()
+    question = ForeignKeyField(Question, backref='answers')

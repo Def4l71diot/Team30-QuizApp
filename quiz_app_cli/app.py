@@ -6,10 +6,8 @@ database = SqliteDatabase("quiz_app.db")
 
 qaf.setup(database)
 
-question_db = qaf.QuestionDatabase()
-topic_factory = qaf.TopicFactory()
-answer_factory = qaf.AnswerFactory()
-question_factory = qaf.QuestionFactory()
+question_manager = qaf.QuestionManager()
+
 
 def run():
     while True:
@@ -36,25 +34,24 @@ def run():
 
 
 def list_all_questions():
-    questions = question_db.get_all()
+    questions = question_manager.get_all_questions()
     print_separator()
     print_questions(questions)
 
 
 def list_all_topics():
-    topics = question_db.get_all_topics()
+    topics = question_manager.get_all_topics()
     for index, topic in enumerate(topics):
         print(str(index + 1) + ". " + topic.name)
 
 
 def create_topic():
     name = input("Please enter topic name: ")
-    topic = topic_factory.create_topic(name)
-    question_db.save_topic(topic)
+    question_manager.create_topic(name)
 
 
 def create_question():
-    topics = question_db.get_all_topics()
+    topics = question_manager.get_all_topics()
     if len(topics) == 0:
         print("No topics available! Please create one using 'createTopic'")
         return
@@ -66,30 +63,29 @@ def create_question():
     topic = topics[question_topic_position - 1]
 
     description = input("Enter question description: ")
-    answers = [None] * 4
-    print("Please enter 4 answers:")
 
+    answers = [{}, {}, {}, {}]
+
+    print("Please enter 4 answers:")
     for i in range(0, 4):
         answer_description = input("Answer " + str(i + 1) + ": ")
-        answer = answer_factory.create_answer(answer_description)
-        answers[i] = answer
+        answers[i][qaf.ANSWER_DESCRIPTION_KEY] = answer_description
 
     correct_answer_index = int(input("Select the correct answer(Enter a value between 1 and 4): "))
-    answers[correct_answer_index - 1].is_correct = True
+    answers[correct_answer_index - 1][qaf.ANSWER_IS_CORRECT_KEY] = True
 
-    question = question_factory.create_question(description, topic, answers)
-    question_from_database = question_db.save(question)
+    question = question_manager.create_question(description, topic, answers)
 
     print("Question created successfully!")
     print("--------------")
-    print_questions([question_from_database])
+    print_questions([question])
 
 
 def delete_question():
-    questions = question_db.get_all()
+    questions = question_manager.get_all_questions()
     print_questions(questions)
     position = int(input("Enter the position of the question from the list above: "))
-    affected_records = question_db.delete(questions[position - 1])
+    affected_records = question_manager.delete_question(questions[position - 1])
     print("Affected records: " + str(affected_records))
 
 
@@ -98,7 +94,7 @@ def show_help():
     print("topics - display all topics")
     print("createTopic - create a topic")
     print("createQuestion - create a question")
-    print("delete - delete a question by it's position in the 'list' command")
+    print("delete - delete a question")
     print("exit - exit the program")
 
 

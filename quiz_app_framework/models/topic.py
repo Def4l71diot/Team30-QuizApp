@@ -1,6 +1,7 @@
-class Topic:
+from .base_dao import BaseDAO
 
-    def __init__(self, name):
-        self.id = None
-        self.questions = None
-        self.name = name
+from peewee import *
+
+
+class Topic(BaseDAO):
+    name = CharField(unique=True)

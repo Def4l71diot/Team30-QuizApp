@@ -1,5 +1,5 @@
-from quiz_app_framework.models.daos import Topic, Answer, Question
-from quiz_app_framework.models.daos.base_dao import DATABASE_PROXY
+from quiz_app_framework.models import Topic, Answer, Question
+from quiz_app_framework.models.base_dao import DATABASE_PROXY
 
 
 def setup(database):

@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+from peewee import fn
+
 
 class BaseDatabase(ABC):
 
@@ -13,9 +15,11 @@ class BaseDatabase(ABC):
     def get_by_id(self, record_id):
         return self.dao_class.get_by_id(record_id)
 
-    @abstractmethod
-    def save(self, object_to_save):
-        pass
+    def get_random(self, number_of_records):
+        return self.dao_class.select().order_by(fn.Random()).limit(number_of_records)
+
+    def add(self, **kwargs):
+        return self.dao_class.create(**kwargs)
 
     # return the number of rows affected
     def update(self, record):
