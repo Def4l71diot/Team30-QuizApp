@@ -10,6 +10,7 @@ question_manager = qaf.QuestionManager()
 def run():
 	# school info code
 	number_of_questions = 3
+	score = []
 	start_command = input("Type 'start' to start the quiz: ")
 	while start_command != "start":
 		print("Invalid command.")
@@ -35,8 +36,13 @@ def run():
 
 	i = 0
 	while i < number_of_questions:
-		quiz(questions, i)
+		correct = quiz(questions, i)
+		if correct == False:
+			score.append(0)
+		else:
+			score.append(1)
 		i = i + 1
+	displayScore(score, number_of_questions)
 
 
 def quiz(questions, i):
@@ -89,3 +95,7 @@ def displayQuestion(questions):
 	    
 	return(correct_answer)
 
+def displayScore(score, number_of_questions):
+	total_score = sum(score)
+	print("You scored " + str(total_score) + " out of " + str(number_of_questions))
+	print("Percentage: " + str(round((total_score/number_of_questions)*100)) + "%")
