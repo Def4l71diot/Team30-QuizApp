@@ -8,17 +8,31 @@ qaf.setup(database)
 question_manager = qaf.QuestionManager()
 
 def run():
+	# school info code
 	number_of_questions = 3
 	start_command = input("Type 'start' to start the quiz: ")
 	while start_command != "start":
 		print("Invalid command.")
 		start_command = input("Type 'start' to start the quiz: ")
-
 	print("Okay, lets start the quiz.")
 	print("To restart the quiz at anytime type 'restart'")
 	print()
+	print("Do you wish to choose a topic?")
+	print("0. No Topic")
+	topics = question_manager.get_all_topics()
+	list_all_topics()
+	
+	question_topic_position = input("Please select a topic: ")
+	while (int(question_topic_position) < 0) or (int(question_topic_position) > len(topics)):
+		print("Invalid input")
+		question_topic_position = input("Type 'no' or select a topic: ")
 
-	questions = question_manager.get_random_questions(number_of_questions)
+	if int(question_topic_position) == 0:
+		questions = question_manager.get_random_questions(number_of_questions)
+	else:
+		topic = topics[int(question_topic_position) - 1]
+		questions = question_manager.get_random_questions(number_of_questions, topic=topic)
+
 	i = 0
 	while i < number_of_questions:
 		quiz(questions, i)
@@ -33,21 +47,36 @@ def quiz(questions, i):
 			print()
 			run()
 		else:
+			while True:
+				try: 
+					int(chosen_answer)
+					break
+				except ValueError:
+					print("Invalid input. Please ensure you input a number.")
+					chosen_answer = input("Please choose an answer: ")
+
 			while (int(chosen_answer) > 4 or int(chosen_answer) < 1):
 				print("Invalid choice")
 				chosen_answer = input("Please choose an answer: ")
 			if int(chosen_answer) == correct_answer:
-				print("Correct")
+				print()
+				print("--Correct--")
+				print()
 				correct = True
 			else:
-				print("Incorrect")
+				print()
+				print("--Incorrect--") 
+				print()
 				correct = False
 
 		return(correct)
 		
 
 
-
+def list_all_topics():
+	topics = question_manager.get_all_topics()
+	for index, topic in enumerate(topics):
+	    print(str(index + 1) + ". " + topic.name)
 
 
 def displayQuestion(questions):
