@@ -102,7 +102,7 @@ def create_question():
 
     print("Question created successfully!")
     print("--------------")
-    print_questions([question])
+    print(question)
 
 
 def delete_question():
@@ -130,15 +130,7 @@ def login_guard():
 def print_questions(questions):
     for index, question in enumerate(questions):
         print("Position: " + str(index + 1))
-        print("--------")
-        print("ID in database: " + str(question.id))
-        print("Description: " + question.description)
-        print("Image: " + str(question.path_to_image))
-        print("Topic: " + question.topic.name)
-        print("Answers:")
-        for i, answer in enumerate(question.answers):
-            print("\t" + str(i + 1) + ". " + answer.description + (" - correct answer" if answer.is_correct else ""))
-            print("\t\tImage: " + str(answer.path_to_image))
+        print(question)
         print_separator()
 
 
