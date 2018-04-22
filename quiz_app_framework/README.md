@@ -125,7 +125,7 @@ Retrieves all questions from database
 Retrieves question with id `topic_id` from database
 
 #### `get_random_questions(number_of_questions, topic=None)` -> `list<Question>`
-Retrieves `number_of_questions` radnom questions
+Retrieves `number_of_questions` random questions
 
 Retrieves `number_of_questions` random questions with `topic`
 
