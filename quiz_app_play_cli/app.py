@@ -10,14 +10,14 @@ statistics_manager = framework.statistics_manager
 
 def run():
 	
-	
 	score = []
+	print()
 	start_command = input("Type 'start' to start the quiz: ")
 	while start_command != "start":
 		print("Invalid command.")
 		start_command = input("Type 'start' to start the quiz: ")
 	print("Okay, lets start the quiz.")
-	print("To restart the quiz at anytime type 'restart'")
+	
 	print()
 	print("Do you wish to choose a topic?")
 	print("0. No Topic")
@@ -42,16 +42,16 @@ def run():
 	while (int(question_topic_position) < 0) or (int(question_topic_position) > len(topics)) :
 		print("Invalid input")
 		question_topic_position = input("Pleae select a topic: ")
-
-	number_of_questions = int(input("How many questions to ask each vistor?: "))
+	
 
 	if int(question_topic_position) == 0:
 		topic = 0
-		questions = question_manager.get_random_questions(number_of_questions)
+		
 	else:
 		topic = topics[int(question_topic_position) - 1]
-		questions = question_manager.get_random_questions(number_of_questions, topic=topic)
 
+	print()
+	number_of_questions = int(input("How many questions to ask each vistor?: "))
 	print()
 
 	schools = []
@@ -62,7 +62,7 @@ def run():
 			break
 
 
-	start(questions, number_of_questions, schools, score, topic)
+	start(number_of_questions, schools, score, topic)
 
 def get_schools():
 	valid_input = False
@@ -75,9 +75,16 @@ def get_schools():
 		else:
 			print("Invalid Input")
 
-def start(questions, number_of_questions, schools, score, topic):
-	topic = topic
+def start(number_of_questions, schools, score, topic):
+	
 	while True:
+		print()
+		topic = topic
+
+		if topic == 0:
+			questions = question_manager.get_random_questions(number_of_questions)
+		else:
+			questions = question_manager.get_random_questions(number_of_questions, topic=topic)
 		print()
 		Schools_string = ", ".join(schools)
 		print("Schools: " + Schools_string)
@@ -88,7 +95,7 @@ def start(questions, number_of_questions, schools, score, topic):
 				valid_input = True
 			else:
 				print("Invalid Input")
-
+		print()
 		print("What Year Group are you in? e.g if you are in Year 8 type '8'")
 		year_group = input("Year Group: ")
 
@@ -96,7 +103,7 @@ def start(questions, number_of_questions, schools, score, topic):
 		questions_and_answers = {}
 		while i < number_of_questions:
 			print()
-			correct = quiz(questions, i)
+			correct = quiz(questions, i, number_of_questions, schools, score, topic)
 			if correct[0] == False:
 				score.append(0)
 			else:
@@ -106,8 +113,11 @@ def start(questions, number_of_questions, schools, score, topic):
 		displayScore(score, number_of_questions)
 		statistics_manager.save_quiz_run(topic= topic, student_school=school, student_year_group=year_group, questions_and_answers=questions_and_answers)
 
-def quiz(questions, i):
+def quiz(questions, i, number_of_questions, schools, score, topic):
+		print("To restart the quiz at anytime type 'restart'")
+		print()
 		skip = False
+		skipped = False
 		quiz = displayQuestion(questions[i])
 		correct_answer = quiz[0]
 		correct_answer_description = quiz[1]
@@ -117,12 +127,13 @@ def quiz(questions, i):
 		if chosen_answer == "restart":
 			print("restarting quiz")
 			print()
-			run()
+			start(number_of_questions, schools, score, topic)
 		if chosen_answer == "skip":
 			print("skipping question")
 			print()
 			statistics_manager.mark_question_skipped(questions[i])
 			skip = True
+			skipped = True
 			correct = False
 		if skip == False:
 			while True:
@@ -159,8 +170,10 @@ def quiz(questions, i):
 				correct = False
 				statistics_manager.mark_question_answered_incorrectly(questions[i])
 			skip = True
-
-		return(correct, questions[i].answers[int(chosen_answer)-1])
+		if skipped == False:
+			return(correct, questions[i].answers[int(chosen_answer)-1])
+		else: 
+			return(correct, 0)
 		
 
 
