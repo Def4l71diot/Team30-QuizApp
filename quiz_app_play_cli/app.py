@@ -24,7 +24,7 @@ def run():
 	topics = question_manager.get_all_topics()
 	list_all_topics()
 	print()
-	
+
 	question_topic_position = input("Please select a topic: ")
 	while True:
 		try:
@@ -51,15 +51,14 @@ def run():
 
 	print()
 
- 	schools = []
- 	while True:
- 		schools.append(input("Enter attending school: "))
- 		command = get_schools()
- 		if command == "n":
- 			break
- 
- 	start(questions, number_of_questions, schools, score)
-	
+	schools = []
+	while True:
+		schools.append(input("Enter attending school: "))
+		command = get_schools()
+		if command == "n":
+			break
+
+	start(questions, number_of_questions, schools, score)
 
 def get_schools():
 	valid_input = False
@@ -175,3 +174,4 @@ def displayScore(score, number_of_questions):
 	total_score = sum(score)
 	print("You scored " + str(total_score) + " out of " + str(number_of_questions))
 	print("Percentage: " + str(round((total_score/number_of_questions)*100)) + "%")
+	
