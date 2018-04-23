@@ -1,5 +1,3 @@
-from peewee import fn
-
 from quiz_app_framework.data import BaseDatabase
 from quiz_app_framework.models import Question
 
@@ -24,12 +22,12 @@ class QuestionDatabase(BaseDatabase):
         return self.dao_class\
             .select()\
             .where(self.dao_class.is_deleted == False)\
-            .order_by(fn.Random())\
+            .order_by(self._db_random_func())\
             .limit(number_of_records)
 
     def get_random_with_topic(self, topic, count):
         return self.dao_class\
             .select()\
             .where((self.dao_class.topic == topic) & (self.dao_class.is_deleted == False))\
-            .order_by(fn.Random())\
+            .order_by(self._db_random_func())\
             .limit(count)
