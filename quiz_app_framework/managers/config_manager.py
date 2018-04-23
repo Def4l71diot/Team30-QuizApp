@@ -6,8 +6,8 @@ from quiz_app_framework.data import UserDatabase
 class ConfigManager:
 
     def __init__(self, user_database=UserDatabase()):
-        self.user_database = user_database
-        self.is_first_launch = self.user_database.get_number_of_records() == 0
+        self._user_database = user_database
+        self.is_first_launch = self._user_database.get_number_of_records() == 0
         self.is_admin_logged_in = False
 
     def login_admin(self, password):
@@ -17,7 +17,7 @@ class ConfigManager:
         if self.is_admin_logged_in:
             raise Exception("Admin already logged in!")
 
-        [admin] = self.user_database.get_all()
+        [admin] = self._user_database.get_all()
         password_hash = hashlib.sha512((password + admin.salt).encode('utf-8')).hexdigest()
 
         if password_hash == admin.password_hash:
@@ -38,7 +38,7 @@ class ConfigManager:
         password_hash = hashlib.sha512((password + salt).encode('utf-8')).hexdigest()
         # end reference
 
-        admin = self.user_database.add(password_hash=password_hash, salt=salt)
+        admin = self._user_database.add(password_hash=password_hash, salt=salt)
 
         if admin is None:
             return False

@@ -8,4 +8,4 @@ class TopicDatabase(BaseDatabase):
         super().__init__(Topic)
 
     def add(self, **kwargs):
-        return self.dao_class.get_or_create(name=kwargs["name"])
+        return self._dao_class.get_or_create(name=kwargs["name"])
