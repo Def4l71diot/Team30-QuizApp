@@ -22,7 +22,8 @@ def run():
 	print("0. No Topic")
 	topics = question_manager.get_all_topics()
 	list_all_topics()
-	
+	print()
+
 	question_topic_position = input("Please select a topic: ")
 	while (int(question_topic_position) < 0) or (int(question_topic_position) > len(topics)):
 		print("Invalid input")
@@ -34,15 +35,50 @@ def run():
 		topic = topics[int(question_topic_position) - 1]
 		questions = question_manager.get_random_questions(number_of_questions, topic=topic)
 
-	i = 0
-	while i < number_of_questions:
-		correct = quiz(questions, i)
-		if correct == False:
-			score.append(0)
+	print()
+	schools = []
+	while True:
+		schools.append(input("Enter attending school: "))
+		command = get_schools()
+		if command == "n":
+			break
+
+	start(questions, number_of_questions, schools, score)
+
+def get_schools():
+	valid_input = False
+	while valid_input == False:
+		command = input("Add another school(y/n): ")
+		if command == "y":
+			valid_input = True
+		elif command == "n":
+			return command
 		else:
-			score.append(1)
-		i = i + 1
-	displayScore(score, number_of_questions)
+			print("Invalid Input")
+
+def start(questions, number_of_questions, schools, score):
+	while True:
+		print()
+		Schools_string = ", ".join(schools)
+		print("Schools: " + Schools_string)
+		valid_input = False
+		while valid_input == False:
+			school = input("Enter School: ")
+			if school in schools:
+				valid_input = True
+			else:
+				print("Invalid Input")
+
+		i = 0
+		while i < number_of_questions:
+			print()
+			correct = quiz(questions, i)
+			if correct == False:
+				score.append(0)
+			else:
+				score.append(1)
+			i = i + 1
+		displayScore(score, number_of_questions)
 
 
 def quiz(questions, i):
