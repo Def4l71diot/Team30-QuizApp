@@ -3,9 +3,9 @@ import quiz_app_framework as qaf
 from peewee import SqliteDatabase
 database = SqliteDatabase("quiz_app.db")
 
-qaf.setup(database)
+framework = qaf.Framework(database)
 
-question_manager = qaf.QuestionManager()
+question_manager = framework.question_manager
 
 def run():
 	# school info code
