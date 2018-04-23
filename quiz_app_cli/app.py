@@ -2,14 +2,18 @@ import quiz_app_framework as qaf
 
 from peewee import SqliteDatabase
 import getpass
+import uuid
+import random
 
 database = SqliteDatabase("quiz_app.db")
 
-qaf.setup(database)
+framework = qaf.Framework(database)
 
-question_manager = qaf.QuestionManager()
+question_manager = framework.question_manager
 
-config_manager = qaf.ConfigManager()
+config_manager = framework.config_manager
+
+statistics_manager = framework.statistics_manager
 
 
 def run():
@@ -50,6 +54,9 @@ def run():
             elif command == "random":
                 login_guard()
                 list_random()
+            elif command == "quiz_run":
+                login_guard()
+                example_save_quiz_run_to_statistics()
             elif command == "help":
                 show_help()
             elif command == "exit":
@@ -129,6 +136,39 @@ def delete_question():
     position = int(input("Enter the position of the question from the list above: "))
     affected_records = question_manager.delete_question(questions[position - 1])
     print("Affected records: " + str(affected_records))
+
+
+def example_save_quiz_run_to_statistics():
+    topics = question_manager.get_all_topics()
+    if len(topics) == 0:
+        print("No topics available! Please create one using 'createTopic'")
+        return
+
+    for index, topic in enumerate(topics):
+        print(str(index + 1) + ". " + topic.name)
+
+    question_topic_position = int(input("Select question topic: "))
+
+    topic = topics[question_topic_position - 1]
+    student_school_name = "School " + uuid.uuid4().hex
+    student_year_group = str(random.randint(10, 14)) + "-" + str(random.randint(17, 20))
+    questions_and_answers = dict.fromkeys(question_manager.get_random_questions(2, topic), None)
+
+    for question in questions_and_answers:
+        picked_answer = random.choice(question.answers)
+        questions_and_answers[question] = picked_answer
+
+    quiz_run = statistics_manager.save_quiz_run(topic, student_school_name, student_year_group, questions_and_answers)
+
+    print("Recorded Quiz run:")
+    print("School: " + quiz_run.student_school)
+    print("Year group: " + quiz_run.student_year_group)
+    print("Topic: " + quiz_run.topic.name)
+
+    print("Questions and answers")
+    for question_and_answer in quiz_run.questions_and_answers:
+        print("Question: " + question_and_answer.question.description)
+        print("\tGiven answer: " + str(question_and_answer.selected_answer.description))
 
 
 def show_help():

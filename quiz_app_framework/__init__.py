@@ -1,4 +1,4 @@
-from .framework import setup
+from .framework import Framework
 from .models import *
 from .data import *
 from .managers import *
