@@ -6,6 +6,7 @@ database = SqliteDatabase("quiz_app.db")
 framework = qaf.Framework(database)
 
 question_manager = framework.question_manager
+statistics_manager = framework.statistics_manager
 
 def run():
 	# school info code
@@ -22,9 +23,23 @@ def run():
 	print("0. No Topic")
 	topics = question_manager.get_all_topics()
 	list_all_topics()
+	print()
 	
 	question_topic_position = input("Please select a topic: ")
-	while (int(question_topic_position) < 0) or (int(question_topic_position) > len(topics)):
+	while True:
+		try:
+			int(question_topic_position)
+			break
+		except ValueError:
+			if question_topic_position == "restart":
+				print("restarting quiz")
+				print()
+				run()
+			else:
+				print("Invalid input")
+				question_topic_position = input("Type 'no' or select a topic: ")
+	
+	while (int(question_topic_position) < 0) or (int(question_topic_position) > len(topics)) :
 		print("Invalid input")
 		question_topic_position = input("Type 'no' or select a topic: ")
 
@@ -34,33 +49,87 @@ def run():
 		topic = topics[int(question_topic_position) - 1]
 		questions = question_manager.get_random_questions(number_of_questions, topic=topic)
 
-	i = 0
-	while i < number_of_questions:
-		correct = quiz(questions, i)
-		if correct == False:
-			score.append(0)
-		else:
-			score.append(1)
-		i = i + 1
-	displayScore(score, number_of_questions)
+	print()
 
+ 	schools = []
+ 	while True:
+ 		schools.append(input("Enter attending school: "))
+ 		command = get_schools()
+ 		if command == "n":
+ 			break
+ 
+ 	start(questions, number_of_questions, schools, score)
+	
+
+def get_schools():
+	valid_input = False
+	while valid_input == False:
+		command = input("Add another school(y/n): ")
+		if command == "y":
+			valid_input = True
+		elif command == "n":
+			return command
+		else:
+			print("Invalid Input")
+
+def start(questions, number_of_questions, schools, score):
+	while True:
+		print()
+		Schools_string = ", ".join(schools)
+		print("Schools: " + Schools_string)
+		valid_input = False
+		while valid_input == False:
+			school = input("Enter School: ")
+			if school in schools:
+				valid_input = True
+			else:
+				print("Invalid Input")
+
+		i = 0
+		while i < number_of_questions:
+			print()
+			correct = quiz(questions, i)
+			if correct == False:
+				score.append(0)
+			else:
+				score.append(1)
+			i = i + 1
+		displayScore(score, number_of_questions)
 
 def quiz(questions, i):
-		correct_answer = displayQuestion(questions[i])
-		chosen_answer = input("Please choose an answer: ")
+		skip = False
+		quiz = displayQuestion(questions[i])
+		correct_answer = quiz[0]
+		correct_answer_description = quiz[1]
+		chosen_answer = input("Please choose an answer, or type 'skip': ")
+		
 		if chosen_answer == "restart":
 			print("restarting quiz")
 			print()
 			run()
-		else:
+		if chosen_answer == "skip":
+			print("skipping question")
+			print()
+			statistics_manager.mark_question_skipped(questions[i])
+			skip = True
+			correct = False
+		if skip == False:
 			while True:
 				try: 
 					int(chosen_answer)
 					break
 				except ValueError:
-					print("Invalid input. Please ensure you input a number.")
-					chosen_answer = input("Please choose an answer: ")
-
+						if chosen_answer == "skip":
+							print("skipping question")
+							print()
+							correct = False
+							statistics_manager.mark_question_skipped(questions[i])
+							skip = True
+							break
+						else:
+							print("Invalid input. Please ensure you input a number.")
+							chosen_answer = input("Please choose an answer: ")
+		while skip == False:
 			while (int(chosen_answer) > 4 or int(chosen_answer) < 1):
 				print("Invalid choice")
 				chosen_answer = input("Please choose an answer: ")
@@ -69,11 +138,15 @@ def quiz(questions, i):
 				print("--Correct--")
 				print()
 				correct = True
+				statistics_manager.mark_question_answered_correctly(questions[i])
 			else:
 				print()
-				print("--Incorrect--") 
+				print("--Incorrect--")
+				print("Correct answer was " + correct_answer_description)
 				print()
 				correct = False
+				statistics_manager.mark_question_answered_incorrectly(questions[i])
+			skip = True
 
 		return(correct)
 		
@@ -87,13 +160,16 @@ def list_all_topics():
 
 def displayQuestion(questions):
 	print("Question: " + questions.description)
+	statistics_manager.mark_question_was_asked(questions)
 	for i, answer in enumerate(questions.answers):
 		if answer.is_correct:
 		    correct_answer = i + 1
+		    correct_answer_description = answer.description
 		print( "Answer "+ str(i + 1) + ". " + answer.description)
 		print( "Image: " + str(answer.path_to_image))
-	    
-	return(correct_answer)
+	
+
+	return([correct_answer,correct_answer_description])
 
 def displayScore(score, number_of_questions):
 	total_score = sum(score)
