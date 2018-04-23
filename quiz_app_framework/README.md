@@ -1,5 +1,15 @@
 # Quiz App framework documentation
 
+# Setup 
+```python
+import quiz_app_framework as qaf
+
+database = SqliteDatabase("quiz_app.db")
+
+# supports all databases supported by peewee
+framework = qaf.Framework(database)
+```
+
 # Models
 
 ## Topic
@@ -8,15 +18,13 @@
 `name` - Type: `string` - the name of the topic
 
 ## Answer
-`id` - Type: `int` the id of the answer in database
+`id` - Type: `int` - the id of the answer in database
 
 `description` - Type: `string` - answer's description
 
 `path_to_image` - Type: `string` - string pointing to the location of the answer's image description - `None` by default
 
 `is_correct` - Type: `bool` - indicates wheter the answer is correct - `False` bu default
-
-
 
 
 ## Question
@@ -30,14 +38,41 @@
 
 `answers` - Type: `list<Answer>` - the possible answers for the question
 
+`is_deleted` - Type: `bool` - indicates whether the question has been deleted
+
+`number_of_times_answered_correctly` - Type: `int` 
+
+`number_of_times_answered_incorrectly` - Type: `int`
+
+`number_of_times_skipped` - Type: `int`
+
+`number_of_times_asked` - Type: `int` - the total number of times the question was asked
+
+`percentage_answered_correctly` - Type: `float` - percentage of time the question is answered correctly
+
+`percentage_answered_incorrectly` - Type: `float` - percentage of time the question is answered incorrectly
+
+`percentage_skipped` - Type: `float` - percentage of time the question is skipped
+
+## AnsweredQuestion
+`question` - Type: `Question` - the question
+
+`selected_answer` - Type: `Answer` - the answer that was given to the question - `None` if the question was not answered(skipped)
+
+## QuizRun
+`student_year_group` - Type: `string` - the year group of the student who took the quiz
+
+`student_school` - Type: `string`  - the school of the student who took the quiz
+
+`topic` - Type: `topic` - the topic of the quiz
+
+`questions_and_answers` - Type: `list<AnsweredQuestion>` - all questions asked in the quiz and the answers give to them - see `AnsweredQuestion`
 
 # Managers
 
 ## QuestionManager
 ```python
-import quiz_app_framework as qaf
-
-question_manager = qaf.QuestionManager()
+question_manager = framework.question_manager
 ```
 ### Methods
 #### `create_topic(topic_name)` -> `Topic`
@@ -140,13 +175,79 @@ topic = question_manager.get_topic(1)
 five_random_questions_with_topic = question_manager.get_random_questions(5, topic)
 ```
 
+## StatisticsManager
+```python
+statistics_manager = framework.statistics_manager
+```
+
+### Methods
+
+#### `mark_question_answered_correctly(question)` -> `void`
+Marks a question as correctly answered
+
+`question` - the question to mark as correctly answered
+
+#### `mark_question_answered_incorrectly(question)` -> `void`
+Marks a question as incorrectly answered
+
+`question` - the question to mark as incorrectly answered
+
+#### `mark_question_skipped(question)` -> `void`
+Marks a question as skipped
+
+`question` - the question to mark as skipped
+
+#### `mark_question_was_asked(question)` -> `void`
+Marks a question as asked
+
+`question` - Type: `Question` - the question to mark as asked
+
+#### `get_hardest_question()` -> `Question` or `None`
+Retrieves the question with the highest `percentage_answered_incorrectly`
+
+returns the hardest question
+if none of the questions was asked, returns `None` 
+
+#### `save_quiz_run(topic, student_school, student_year_group, questions_and_answers)` -> `QuizRun`
+Saves a quiz run
+
+`topic` - Type: `Topic` - the topic of the quiz
+
+`student_school` - Type: `string`  - the school of the student who took the quiz
+
+`student_year_group` - Type: `string` - the year group of the student who took the quiz
+
+`questions_and_answers` - Type: `dict<Question, Answer>` - dictionary whose keys are the questions asked in the quiz
+
+returns the newly created entry in database
+
+Example:
+```python
+student_school = "School 1"
+student_year_group = "16-19"
+
+topic = question_manager.get_topic(1)
+
+questions = question_manager.get_random_questions(3, topic=topic)
+
+questions_and_answers = dict.fromkeys(questions, None)
+
+    for question in questions_and_answers:
+        picked_answer = random.choice(question.answers)
+        questions_and_answers[question] = picked_answer
+
+
+quiz_run = statistics_manager.save_quiz_run(topic, student_school, student_year_group, questions_and_answers)
+
+```
+
+#### `get_all_quiz_runs()` -> `list<QuizRun>`
+Retrieves all quiz runs
 
 
 ## ConfigManager
 ```python
-import quiz_app_framework as qaf
-
-config_manager = qaf.ConfigManager()
+config_manager = framework.config_manager
 ```
 
 ### Properties

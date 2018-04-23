@@ -56,3 +56,6 @@ class StatisticsManager:
                                                  from_quiz_run=quiz_run)
 
         return quiz_run
+
+    def get_all_quiz_runs(self):
+        return self._quiz_run_database.get_all()
