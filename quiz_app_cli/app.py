@@ -47,6 +47,9 @@ def run():
             elif command == "delete":
                 login_guard()
                 delete_question()
+            elif command == "random":
+                login_guard()
+                list_random()
             elif command == "help":
                 show_help()
             elif command == "exit":
@@ -67,6 +70,21 @@ def list_all_topics():
     topics = question_manager.get_all_topics()
     for index, topic in enumerate(topics):
         print(str(index + 1) + ". " + topic.name)
+
+
+def list_random():
+    topics = question_manager.get_all_topics()
+    if len(topics) == 0:
+        print("No topics available! Please create one using 'createTopic'")
+        return
+
+    for index, topic in enumerate(topics):
+        print(str(index + 1) + ". " + topic.name)
+
+    question_topic_position = int(input("Select question topic: "))
+    topic = topics[question_topic_position - 1]
+
+    print_questions(question_manager.get_random_questions(2, topic))
 
 
 def create_topic():

@@ -36,13 +36,12 @@ class QuestionManager:
         return self.question_database.update(question)
 
     def delete_question(self, question):
-        for answer in question.answers:
-            self.answer_database.delete(answer)
+        question.is_deleted = True
 
-        return self.question_database.delete(question)
+        return self.update_question(question)
 
-    def get_all_questions(self):
-        return self.question_database.get_all()
+    def get_all_questions(self, and_deleted=False):
+        return self.question_database.get_all(and_deleted=and_deleted)
 
     def get_question(self, question_id):
         return self.question_database.get_by_id(question_id)
