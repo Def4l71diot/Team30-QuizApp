@@ -35,6 +35,9 @@ class QuestionManager:
     def update_question(self, question):
         return self._question_database.update(question)
 
+    def update_answer(self, answer):
+        return self._answer_database.update(answer)
+
     def delete_question(self, question):
         question.is_deleted = True
 
@@ -45,6 +48,9 @@ class QuestionManager:
 
     def get_question(self, question_id):
         return self._question_database.get_by_id(question_id)
+
+    def get_answer(self, answer_id):
+        return self._answer_database.get_by_id(answer_id)
 
     def get_random_questions(self, number_of_questions, topic=None):
         if topic is None:

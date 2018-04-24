@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from peewee import fn, MySQLDatabase
+from peewee import fn, MySQLDatabase, DoesNotExist
 
 
 class BaseDatabase(ABC):
@@ -18,7 +18,10 @@ class BaseDatabase(ABC):
         return self._dao_class.select()
 
     def get_by_id(self, record_id):
-        return self._dao_class.get_by_id(record_id)
+        try:
+            return self._dao_class.get_by_id(record_id)
+        except DoesNotExist:
+            return None
 
     def get_random(self, number_of_records):
         return self._dao_class.select().order_by(self._db_random_func()).limit(number_of_records)
