@@ -8,4 +8,4 @@ from peewee import *
 class QuizRun(BaseDAO):
     student_year_group = CharField()
     student_school = CharField()
-    topic = ForeignKeyField(Topic)
+    topic = ForeignKeyField(Topic, null=True)

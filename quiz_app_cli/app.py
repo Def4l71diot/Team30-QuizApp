@@ -1,14 +1,13 @@
 import quiz_app_framework as qaf
-from quiz_app_cli.providers import *
 
 
 class App:
     def __init__(self,
-                 config_manager: qaf.ConfigManager,
-                 question_manager: qaf.QuestionManager,
-                 statistics_manager: qaf.StatisticsManager,
-                 reader: ConsoleReaderProvider,
-                 writer: ConsoleWriterProvider):
+                 config_manager,
+                 question_manager,
+                 statistics_manager,
+                 reader,
+                 writer):
         self._config_manager = config_manager
         self._question_manager = question_manager
         self._statistics_manager = statistics_manager
@@ -31,6 +30,12 @@ class App:
         except Exception as e:
             self._writer.write(e)
             return
+        except KeyboardInterrupt:
+            self._writer.write()
+            self._writer.write("Thank you for using the quiz app!")
+            return
+
+        self._writer.write("Logged in successfully!")
 
         while True:
             try:
@@ -53,9 +58,18 @@ class App:
                 elif command == "editQuestion":
                     self._login_guard()
                     self._edit_question()
+                elif command == "setupQuiz":
+                    self._login_guard()
+                    try:
+                        self._setup_quiz()
+                    except KeyboardInterrupt:
+                        self._writer.write()
+                elif command == "login":
+                    self._login()
                 elif command == "help":
                     self._show_help()
                 elif command == "exit":
+                    self._login_guard()
                     break
                 else:
                     self._writer.write("Invalid command!")
@@ -63,6 +77,11 @@ class App:
                 self._writer.write("Please enter a valid value!")
             except IndexError:
                 self._writer.write("Invalid item selected!")
+            except KeyboardInterrupt:
+                self._login_guard()
+                self._writer.write()
+                self._writer.write("Thank you for using the quiz app!")
+                return
             except Exception as e:
                 self._writer.write(e)
 
@@ -182,8 +201,239 @@ class App:
         if not self._config_manager.is_admin_logged_in:
             raise Exception("You must be logged in order to perform this action!")
 
+    def _login(self):
+        if self._config_manager.is_admin_logged_in:
+            raise Exception("You are already logged in")
+
+        password = self._reader.read_input_hidden("Enter admin password: ")
+        if not self._config_manager.login_admin(password):
+            raise Exception("Wrong password!")
+
+        self._writer.write("Logged in successfully!")
+
     def _print_questions(self, questions):
         self._writer.write_separator()
         for question in questions:
             self._writer.write(question)
             self._writer.write_separator()
+
+    def _setup_quiz(self):
+        if self._question_manager.get_question_count() == 0:
+            raise Exception("No questions found! You must create some!")
+
+        self._writer.write("Okay, lets setup the quiz.")
+
+        self._writer.write()
+        self._writer.write("Do you wish to choose a topic?")
+        self._writer.write("0. No Topic")
+        topics = self._question_manager.get_all_topics()
+        self._list_all_topics()
+        self._writer.write()
+
+        question_topic_position = self._reader.read_input("Please select a topic: ")
+        while True:
+            try:
+                int(question_topic_position)
+                break
+            except ValueError:
+                if question_topic_position == "restart":
+                    self._writer.write("restarting quiz")
+                    self._writer.write()
+                    self._setup_quiz()
+                else:
+                    self._writer.write("Invalid input")
+                    question_topic_position = self._reader.read_input("Please select a topic: ")
+
+        while (int(question_topic_position) < 0) or (int(question_topic_position) > len(topics)):
+            self._writer.write("Invalid input")
+            question_topic_position = self._reader.read_input("Please select a topic: ")
+
+        if int(question_topic_position) == 0:
+            topic = None
+
+        else:
+            topic = topics[int(question_topic_position) - 1]
+
+        self._writer.write()
+        number_of_questions = int(self._reader.read_input("How many questions to ask each visitor?: "))
+        self._writer.write()
+
+        schools = self._get_items("school")
+
+        year_groups = self._get_items("year group")
+        self._config_manager.logout_admin()
+        self._take_quiz(number_of_questions, schools, year_groups, topic)
+
+    def _get_items(self, item_name):
+        items = []
+        while True:
+            items.append(self._reader.read_input("Please enter {}: ".format(item_name)))
+
+            while True:
+                command = self._reader.read_input("Add another {}?(y/n): ".format(item_name)).lower()
+                if command == "y":
+                    break
+                elif command == "n":
+                    return items
+                else:
+                    self._writer.write("Invalid Input!")
+
+    def _take_quiz(self, number_of_questions, schools, year_groups, topic=None):
+        try:
+            while True:
+                self._writer.write()
+                questions = self._question_manager.get_random_questions(number_of_questions, topic=topic)
+
+                self._writer.write("Schools: ")
+                for index, school in enumerate(schools):
+                    self._writer.write(str(index + 1) + ". " + school)
+
+                while True:
+                    try:
+                        school_position_raw = self._reader.read_input(
+                            "What school do you attend? Pick from the list above: ")
+                        school_position = int(school_position_raw)
+                    except ValueError:
+                        self._writer.write("Please enter a valid position!")
+                        continue
+
+                    if 1 <= school_position <= len(schools):
+                        break
+                    else:
+                        self._writer.write("Invalid input!")
+
+                student_school = schools[school_position - 1]
+
+                self._writer.write("Year groups: ")
+                for index, year_group in enumerate(year_groups):
+                    self._writer.write(str(index + 1) + ". " + year_group)
+
+                while True:
+                    try:
+                        year_group_position_raw = \
+                            self._reader.read_input("What Year Group are you in? Pick from the list above: ")
+                        year_group_position = int(year_group_position_raw)
+                    except ValueError:
+                        self._writer.write("Please enter a valid position!")
+                        continue
+                    if 1 <= year_group_position <= len(year_groups):
+                        break
+                    else:
+                        self._writer.write("Invalid Input!")
+
+                year_group = year_groups[year_group_position - 1]
+                score = []
+                i = 0
+                questions_and_answers = {}
+                while i < number_of_questions:
+                    self._writer.write()
+                    [answered_correctly, selected_answer] = self._run_quiz_with_question(questions[i],
+                                                                                         number_of_questions,
+                                                                                         schools,
+                                                                                         score,
+                                                                                         topic)
+                    if not answered_correctly:
+                        score.append(0)
+                    else:
+                        score.append(1)
+                    questions_and_answers[questions[i]] = selected_answer
+                    i += 1
+
+                self._display_quiz_score(score, number_of_questions)
+                self._statistics_manager.save_quiz_run(topic=topic,
+                                                       student_school=student_school,
+                                                       student_year_group=year_group,
+                                                       questions_and_answers=questions_and_answers)
+        except KeyboardInterrupt:
+            self._writer.write()
+            password = self._reader.read_input_hidden("Enter admin password: ")
+            if self._config_manager.login_admin(password):
+                return
+            else:
+                self._writer.write("Wrong password!")
+                self._reader.read_input("Resetting quiz. Press enter to continue...")
+                self._writer.clear()
+
+    def _run_quiz_with_question(self, question, number_of_questions, schools, score, topic):
+        self._writer.write("To restart the quiz at anytime type 'restart'")
+        self._writer.write()
+        skip = False
+        skipped = False
+        correct = False
+        quiz = self._quiz_display_question(question)
+        correct_answer = quiz[0]
+        correct_answer_description = quiz[1]
+
+        chosen_answer = self._reader.read_input("Please choose an answer, or type 'skip': ")
+
+        if chosen_answer == "restart":
+            self._writer.write("restarting quiz")
+            self._writer.write()
+            self._take_quiz(number_of_questions, schools, score, topic)
+        if chosen_answer == "skip":
+            self._writer.write("skipping question")
+            self._writer.write()
+            self._statistics_manager.mark_question_skipped(question)
+            skip = True
+            skipped = True
+
+        if not skip:
+            while True:
+                try:
+                    int(chosen_answer)
+                    break
+                except ValueError:
+                    if chosen_answer == "skip":
+                        self._writer.write("skipping question")
+                        self._writer.write()
+                        correct = False
+                        self._statistics_manager.mark_question_skipped(question)
+                        skip = True
+                        break
+                    else:
+                        self._writer.write("Invalid input. Please ensure you input a number.")
+                        chosen_answer = self._reader.read_input("Please choose an answer: ")
+        while not skip:
+            while int(chosen_answer) > 4 or int(chosen_answer) < 1:
+                self._writer.write("Invalid choice")
+                chosen_answer = self._reader.read_input("Please choose an answer: ")
+
+            if int(chosen_answer) == correct_answer:
+                self._writer.write()
+                self._writer.write("--Correct--")
+                self._writer.write()
+                correct = True
+                self._statistics_manager.mark_question_answered_correctly(question)
+            else:
+                self._writer.write()
+                self._writer.write("--Incorrect--")
+                self._writer.write("Correct answer was " + correct_answer_description)
+                self._writer.write()
+                correct = False
+                self._statistics_manager.mark_question_answered_incorrectly(question)
+            skip = True
+
+        if not skipped:
+            return correct, question.answers[int(chosen_answer) - 1]
+        else:
+            return correct, None
+
+    def _quiz_display_question(self, question):
+        self._writer.write("Question: " + question.description)
+        self._statistics_manager.mark_question_was_asked(question)
+
+        correct_answer = None
+        correct_answer_description = None
+        for i, answer in enumerate(question.answers):
+            if answer.is_correct:
+                correct_answer = i + 1
+                correct_answer_description = answer.description
+
+            self._writer.write("Answer " + str(i + 1) + ". " + answer.description)
+
+        return correct_answer, correct_answer_description
+
+    def _display_quiz_score(self, score, number_of_questions):
+        total_score = sum(score)
+        self._writer.write("You scored " + str(total_score) + " out of " + str(number_of_questions))
+        self._writer.write("Percentage: " + str(round((total_score / number_of_questions) * 100)) + "%")

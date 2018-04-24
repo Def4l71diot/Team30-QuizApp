@@ -46,6 +46,9 @@ class QuestionManager:
     def get_all_questions(self, and_deleted=False):
         return self._question_database.get_all(and_deleted=and_deleted)
 
+    def get_question_count(self):
+        return self._question_database.get_number_of_records()
+
     def get_question(self, question_id):
         return self._question_database.get_by_id(question_id)
 

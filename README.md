@@ -9,14 +9,9 @@ sudo python3 -m pip install -r requirements.txt
 ```
 
 
-2. To run admin features:
+2. Run with
 ```
 python3 quiz_app.py
-```
-
-3. To play quiz:
-```
-python3 quiz_play.py
 ```
 
 [Framework documentation](quiz_app_framework/README.md)
