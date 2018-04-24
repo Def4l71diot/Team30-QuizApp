@@ -39,7 +39,7 @@ class StatisticsManager:
 
         hardest_question = all_questions[0]
         for question in all_questions:
-            if question.percentage_answered_incorrectly > hardest_question:
+            if question.percentage_answered_incorrectly > hardest_question.percentage_answered_incorrectly:
                 hardest_question = question
 
         return hardest_question

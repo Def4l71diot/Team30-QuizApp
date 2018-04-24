@@ -36,6 +36,9 @@ class App:
             return
 
         self._writer.write("Logged in successfully!")
+        self._writer.write()
+        self._show_help()
+        self._writer.write()
 
         while True:
             try:
@@ -43,6 +46,8 @@ class App:
                 if command == "questions":
                     self._login_guard()
                     self._list_all_questions()
+                elif command == "hardestQuestion":
+                    self._writer.write(str(self._statistics_manager.get_hardest_question()))
                 elif command == "topics":
                     self._login_guard()
                     self._list_all_topics()
@@ -78,8 +83,10 @@ class App:
             except IndexError:
                 self._writer.write("Invalid item selected!")
             except KeyboardInterrupt:
-                self._login_guard()
                 self._writer.write()
+                if not self._config_manager.is_admin_logged_in:
+                    self._writer.write("You must be logged in in order to close the app!")
+                    continue
                 self._writer.write("Thank you for using the quiz app!")
                 return
             except Exception as e:
@@ -191,11 +198,17 @@ class App:
 
     def _show_help(self):
         self._writer.write("questions - display all questions")
+        self._writer.write("hardestQuestion - the hardest question")
         self._writer.write("topics - display all topics")
         self._writer.write("createTopic - create a topic")
         self._writer.write("createQuestion - create a question")
-        self._writer.write("delete - delete a question")
+        self._writer.write("deleteQuestion - delete a question")
+        self._writer.write("editQuestion - edit an existing question")
+        self._writer.write("setupQuiz - setup and run the quiz")
         self._writer.write("exit - exit the program")
+        self._writer.write("login - login to admin account(in case you get logged out)")
+        self._writer.write("hardestQuestion")
+        self._writer.write("help - display this message")
 
     def _login_guard(self):
         if not self._config_manager.is_admin_logged_in:
@@ -281,9 +294,9 @@ class App:
     def _take_quiz(self, number_of_questions, schools, year_groups, topic=None):
         try:
             while True:
-                self._writer.write()
+                self._writer.clear()
                 questions = self._question_manager.get_random_questions(number_of_questions, topic=topic)
-
+                number_of_questions = len(questions)
                 self._writer.write("Schools: ")
                 for index, school in enumerate(schools):
                     self._writer.write(str(index + 1) + ". " + school)
@@ -327,11 +340,11 @@ class App:
                 questions_and_answers = {}
                 while i < number_of_questions:
                     self._writer.write()
-                    [answered_correctly, selected_answer] = self._run_quiz_with_question(questions[i],
-                                                                                         number_of_questions,
-                                                                                         schools,
-                                                                                         score,
-                                                                                         topic)
+                    [answered_correctly, selected_answer] = self._ask_question(questions[i],
+                                                                               number_of_questions,
+                                                                               schools,
+                                                                               year_groups,
+                                                                               topic)
                     if not answered_correctly:
                         score.append(0)
                     else:
@@ -344,6 +357,7 @@ class App:
                                                        student_school=student_school,
                                                        student_year_group=year_group,
                                                        questions_and_answers=questions_and_answers)
+                self._reader.read_input("Resetting quiz. Press enter to continue...")
         except KeyboardInterrupt:
             self._writer.write()
             password = self._reader.read_input_hidden("Enter admin password: ")
@@ -354,22 +368,20 @@ class App:
                 self._reader.read_input("Resetting quiz. Press enter to continue...")
                 self._writer.clear()
 
-    def _run_quiz_with_question(self, question, number_of_questions, schools, score, topic):
+    def _ask_question(self, question, number_of_questions, schools, year_groups, topic):
         self._writer.write("To restart the quiz at anytime type 'restart'")
         self._writer.write()
         skip = False
         skipped = False
         correct = False
-        quiz = self._quiz_display_question(question)
-        correct_answer = quiz[0]
-        correct_answer_description = quiz[1]
+        [correct_answer, correct_answer_description] = self._quiz_display_question(question)
 
         chosen_answer = self._reader.read_input("Please choose an answer, or type 'skip': ")
 
         if chosen_answer == "restart":
             self._writer.write("restarting quiz")
             self._writer.write()
-            self._take_quiz(number_of_questions, schools, score, topic)
+            self._take_quiz(number_of_questions, schools, year_groups, topic)
         if chosen_answer == "skip":
             self._writer.write("skipping question")
             self._writer.write()
