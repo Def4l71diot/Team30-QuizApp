@@ -14,4 +14,6 @@ sudo python3 -m pip install -r requirements.txt
 python3 quiz_app.py
 ```
 
+If you wish to use test our app without entering a ton of questions, **rename** `quiz_app.db.bak` to `quiz_app.db` to use the test database
+
 [Framework documentation](quiz_app_framework/README.md)
