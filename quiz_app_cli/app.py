@@ -69,6 +69,9 @@ class App:
                         self._setup_quiz()
                     except KeyboardInterrupt:
                         self._writer.write()
+                elif command == "quizRuns":
+                    self._login_guard()
+                    self._list_quiz_runs()
                 elif command == "login":
                     self._login()
                 elif command == "help":
@@ -205,9 +208,9 @@ class App:
         self._writer.write("deleteQuestion - delete a question")
         self._writer.write("editQuestion - edit an existing question")
         self._writer.write("setupQuiz - setup and run the quiz")
+        self._writer.write("quizRuns - get all quiz runs")
         self._writer.write("exit - exit the program")
         self._writer.write("login - login to admin account(in case you get logged out)")
-        self._writer.write("hardestQuestion")
         self._writer.write("help - display this message")
 
     def _login_guard(self):
@@ -449,3 +452,10 @@ class App:
         total_score = sum(score)
         self._writer.write("You scored " + str(total_score) + " out of " + str(number_of_questions))
         self._writer.write("Percentage: " + str(round((total_score / number_of_questions) * 100)) + "%")
+
+    def _list_quiz_runs(self):
+        quiz_runs = self._statistics_manager.get_all_quiz_runs()
+        self._writer.write()
+        for quiz_run in quiz_runs:
+            self._writer.write(quiz_run)
+            self._writer.write_separator()
